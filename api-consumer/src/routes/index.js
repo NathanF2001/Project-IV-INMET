@@ -5,7 +5,7 @@ const routes = Router();
 
 async function type_1(type_data, filter = null) {
   try {
-    let url = "https://sizwwimd6c.execute-api.us-east-1.amazonaws.com/send-data-inmet-api/result";
+    let url = process.env.URL_API;
     if (filter !== null) {
       url += `?data=${filter}`;
     }
@@ -35,7 +35,7 @@ async function type_1(type_data, filter = null) {
 
 async function type_2(type_data, filter = null) {
   try {
-    let url = "https://sizwwimd6c.execute-api.us-east-1.amazonaws.com/send-data-inmet-api/result";
+    let url = process.env.URL_API;
     if (filter !== null) {
       url += `?data=${filter}`;
     }
