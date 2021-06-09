@@ -1,0 +1,15 @@
+{
+  "name": "inmet-api-endpoints",
+  "version": "1.0.0",
+  "description": "Api desenvolvida para conter todos os endpoints da arquitetura criada para o projeto",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Nathan Freitas",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.21.1",
+    "express": "^4.17.1"
+  }
+}

@@ -1,0 +1,98 @@
+CREATE OR REPLACE STREAM "STREAM_RESULT_DATA" (
+    Horario Integer,
+    Chuvas Integer,
+	Temperatura_maxima_hora REAL,
+	Temperatura_minima_hora REAL,
+	Temperatura_media_hora REAL,
+	Umidade_maxima_hora REAL,
+	Umidade_minima_hora REAL,
+	Umidade_media_hora REAL
+);
+ 
+CREATE OR REPLACE PUMP "STREAM_PUMP_RESULT_DATA" AS INSERT INTO "STREAM_RESULT_DATA"
+SELECT STREAM MAX(HORARIO) as Horario,SUM(CHUVA) as Chuvas,MAX(TEM_MAX) AS Temperatura_maxima_hora, 
+MIN(TEM_MIN) AS Temperatura_minima_hora, avg(TEM_INS)  AS Temperatura_media_hora,
+MAX(UMD_MAX) AS Umidade_maxima_hora,MIN(UMD_MIN) AS Umidade_minima_hora, avg(UMD_INS) AS Umidade_media_hora
+FROM "SOURCE_SQL_STREAM_001"
+GROUP BY HORARIO,STEP("SOURCE_SQL_STREAM_001".ROWTIME BY INTERVAL '60' MINUTE);
+
+CREATE OR REPLACE STREAM "STREAM_TO_SEND_TYPE_1" (
+    tipo_dado VARCHAR(20),
+    Nome_estacao CHAR(30) NOT NULL,
+    codigo_estacao CHAR(5),
+	Value_captured REAL,
+	Latitude DOUBLE,
+	Longitude DOUBLE,
+	HORARIO INTEGER
+);
+
+CREATE OR REPLACE PUMP "ENDPOINTS_PUMP_TO_SEND1" AS INSERT INTO "STREAM_TO_SEND_TYPE_1"
+-- MAX TEMP
+SELECT STREAM 'TEMP_MAX' as tipo_dado,DC_NOME as Nome_estacao, CD_ESTACAO as codigo_estacao,TEM_MAX as Value_captured,
+VL_LATITUDE as Latitude,VL_LONGITUDE as Longitude,o.HORARIO FROM "SOURCE_SQL_STREAM_001" as o
+JOIN "STREAM_RESULT_DATA" as s
+ON o.TEM_MAX = s.Temperatura_maxima_hora
+JOIN "REFERENCE-DATA-S3" as s3
+ON s3.tipo_dado = 'TEMP_MAX' AND s.Temperatura_maxima_hora > s3.Value_captured
+-- MIN TEMP
+UNION ALL
+SELECT STREAM 'TEMP_MIN' as tipo_dado, DC_NOME as Nome_estacao, CD_ESTACAO as codigo_estacao,TEM_MIN as Value_captured,
+VL_LATITUDE as Latitude,VL_LONGITUDE as Longitude,o.HORARIO FROM "SOURCE_SQL_STREAM_001" as o
+JOIN "STREAM_RESULT_DATA" as s
+ON o.TEM_MIN = s.Temperatura_minima_hora
+JOIN "REFERENCE-DATA-S3" as s3
+ON s3.tipo_dado = 'TEMP_MIN' AND s.Temperatura_minima_hora < s3.Value_captured
+UNION ALL
+-- MAX UMD
+SELECT STREAM 'UMID_MAX' as tipo_dado,DC_NOME as Nome_estacao, CD_ESTACAO as codigo_estacao,UMD_MAX as Value_captured,
+VL_LATITUDE as Latitude,VL_LONGITUDE as Longitude,o.HORARIO FROM "SOURCE_SQL_STREAM_001" as o
+JOIN "STREAM_RESULT_DATA" as s
+ON o.UMD_MAX = s.Umidade_maxima_hora
+JOIN "REFERENCE-DATA-S3" as s3
+ON s3.tipo_dado = 'UMID_MAX' AND s.Umidade_maxima_hora > s3.Value_captured
+UNION ALL
+-- MIN UMD
+SELECT STREAM 'UMID_MIN' as tipo_dado, DC_NOME as Nome_estacao, CD_ESTACAO as codigo_estacao,UMD_MIN as Value_captured,
+VL_LATITUDE as Latitude,VL_LONGITUDE as Longitude,o.HORARIO FROM "SOURCE_SQL_STREAM_001" as o
+JOIN "STREAM_RESULT_DATA" as s
+ON o.UMD_MIN = s.Umidade_minima_hora
+JOIN "REFERENCE-DATA-S3" as s3
+ON s3.tipo_dado = 'UMID_MIN' AND s.Umidade_minima_hora < s3.Value_captured
+UNION ALL
+-- Selecionar a média de temperatura
+SELECT STREAM 'TEMP_AVG' as tipo_dado, '-' as Nome_estacao,  '-' as codigo_estacao,
+(Temperatura_media_hora + (s.VALUE_CAPTURED*o.Horario))/ (o.Horario+1) as Value_captured,
+0 as Latitude, 0 as Longitude, o.Horario as HORARIO FROM "STREAM_RESULT_DATA" as o
+JOIN "REFERENCE-DATA-S3" as s
+ON s.TIPO_DADO = 'TEMP_AVG'
+UNION ALL
+-- Selecionar a média de Umidade
+SELECT STREAM 'UMID_AVG' as tipo_dado, '-' as Nome_estacao, '-' as codigo_estacao,
+(Umidade_media_hora + (s.VALUE_CAPTURED*o.Horario))/ (o.Horario+1) as Value_captured,
+0 as Latitude, 0 as Longitude, o.Horario as HORARIO FROM "STREAM_RESULT_DATA" as o
+JOIN "REFERENCE-DATA-S3" as s
+ON s.TIPO_DADO = 'UMID_AVG'
+UNION ALL
+-- Selecionar a soma de chuva
+SELECT STREAM 'CHUVAS' as tipo_dado, '-' as Nome_estacao,  '-' as codigo_estacao,
+(Chuvas + s.Value_captured) as Value_captured,
+0 as Latitude, 0 as Longitude, o.Horario as HORARIO FROM "STREAM_RESULT_DATA" as o
+JOIN "REFERENCE-DATA-S3" as s
+ON s.TIPO_DADO = 'CHUVAS';
+
+
+
+CREATE OR REPLACE STREAM "STREAM_TO_SEND_TYPE_2" (
+    tipo_dado VARCHAR(20),
+    Nome_estacao CHAR(30) NOT NULL,
+    codigo_estacao CHAR(5),
+	Value_captured REAL,
+	Latitude DOUBLE,
+	Longitude DOUBLE,
+	HORARIO INTEGER
+);
+
+CREATE OR REPLACE PUMP "ENDPOINTS_PUMP_TO_SEND2" AS INSERT INTO "STREAM_TO_SEND_TYPE_2"
+SELECT STREAM tipo_dado, Nome_estacao, codigo_estacao, Value_captured, Latitude,Longitude,HORARIO FROM "STREAM_TO_SEND_TYPE_1" 
+GROUP BY tipo_dado, Nome_estacao, codigo_estacao, Value_captured, Latitude,Longitude,HORARIO, 
+STEP("STREAM_TO_SEND_TYPE_1".ROWTIME BY INTERVAL '60' MINUTE);
