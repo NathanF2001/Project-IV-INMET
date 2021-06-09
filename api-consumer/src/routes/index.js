@@ -3,9 +3,11 @@ const axios = require('axios');
 
 const routes = Router();
 
+const URL_API = YOUR - API - GATEWAY - URL;
+
 async function type_1(type_data, filter = null) {
   try {
-    let url = process.env.URL_API;
+    let url = URL_API;
     if (filter !== null) {
       url += `?data=${filter}`;
     }
@@ -35,7 +37,7 @@ async function type_1(type_data, filter = null) {
 
 async function type_2(type_data, filter = null) {
   try {
-    let url = process.env.URL_API;
+    let url = URL_API;
     if (filter !== null) {
       url += `?data=${filter}`;
     }
