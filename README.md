@@ -7,7 +7,7 @@ O projeto teve o intuito de abordar um sistema em nuvem através de streaming de
   <img src="./arquitetura_INMET.jpg" />
 </p>
 
-O problema em questão abordas no 6 variáveis metodológicas a qual devem ser intergradas e agregadas em um período de um dia a qual podem ser classificadas como:
+O problema em questão aborda 7 variáveis metodológicas a qual devem ser intergradas e agregadas em um período de um dia a qual podem ser classificadas como:
   - Acumulado: Soma de todos o valores observados no período de um dia
   - Máximo: O maior valor observado no dia
   - Mínimo: O menor valor observado no dia
