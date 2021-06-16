@@ -14,7 +14,7 @@ O problema em questão aborda 7 variáveis metodológicas a qual devem ser inter
   - Média: A média de valor observado no dias
 
 
-Dentro das variáveis escolhidas, pelo menos uma dessas funções de agregação estão inseridas nelas. Ponto final da arquitetura tem uma api para utilizar o resultado do processamento dos dados, dentro dessa api temos endpoints a qual tem dois tipo de saída:
+Dentro das variáveis escolhidas, pelo menos uma dessas funções de agregação estão inseridas nelas. Como saída da arquitetura tem uma  aplicação que utiliza o resultado do processamento dos dados em formato de uma api própria, dentro dessa api temos endpoints a qual tem dois tipo de saída:
   - Tipo 1
     - Contém as funções de agregação de acumulado e média
     - Retorna o valor no formato json da seguinte forma:
