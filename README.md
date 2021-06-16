@@ -56,7 +56,7 @@ Dentro das variáveis escolhidas, pelo menos uma dessas funções de agregação
 
   Pelo o Kinesis Data Firehose não ter muita flexibilidade em direcionar os arquivos dos resultados foi utilizado, uma função Lambda com um trigger para o bucket do Firehose foi utilizada. Então a cada momento que um dado é adicionado a função lambda é acionada e repassa esses dados para ser reorganizados dentro de um outro bucket S3 de maneira apropriada para entregar a API final. O código dessa função está em './lambda-functions/consumer'.
 
-  Afinal de tudo temos uma função lambda que retorna os valores do bucket processados através de um link gerado pelo API GATEWAY. Ao acessar a API os resultados vão seguir essa estrutura:
+  O bucket vai servir como dados de referência para Kinesis Analytics para ser recalculado as variáveis da hora seguinte e afinal de tudo temos uma função lambda que retorna os valores do bucket processados através de um link gerado pelo API GATEWAY. Ao acessar a API os resultados vão seguir essa estrutura:
  
   ```yaml
   { 
